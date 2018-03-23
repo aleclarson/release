@@ -23,7 +23,7 @@ function release(dir, ver, opts = {}) {
     .filter(x => x)
 
   // Find the latest version tag.
-  let latest = tags.reduce(reduceLatest)
+  let latest = tags.reduce(reduceLatest, null)
 
   if (incRE.test(ver))
     ver = semver.inc(latest || zero, ver)
