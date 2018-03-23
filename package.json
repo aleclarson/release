@@ -1,0 +1,14 @@
+{
+  "name": "release",
+  "version": "0.0.1",
+  "dependencies": {
+    "fsx": "aleclarson/fsx#1.6.0",
+    "huey": "aleclarson/huey#0.1.0",
+    "in-array": "^0.1.0",
+    "semver": "^5.5.0",
+    "slurm": "^0.0.1"
+  },
+  "bin": {
+    "release": "./cli.js"
+  }
+}
