@@ -33,6 +33,7 @@ $ release <version>
 
 ### Wishlist
 
+- Delete prerelease tags before pushing a release
 - Integrate https://github.com/zeit/release
 - Look at commit messages to determine release type
 
