@@ -30,7 +30,9 @@ if (!ver) {
 }
 
 try {
-  release(process.cwd(), ver)
+  release(process.cwd(), ver, {
+    log: console.log,
+  })
 } catch(err) {
   if (err.code) {
     fatal(err.message)

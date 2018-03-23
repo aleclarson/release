@@ -8,11 +8,14 @@ const publishPath = path.join(__dirname, 'publish.sh')
 const incRE = /^(major|premajor|minor|preminor|patch|prepatch|prerelease)$/
 const zero = '0.0.0'
 
-function release(dir, ver) {
+function release(dir, ver, opts = {}) {
   let git = new Git(dir)
 
   if (git.exec('status', '--porcelain'))
     fatal('Please stash or commit your changes', 'NOT_CLEAN')
+
+  // Logging function
+  let log = opts.log || Function.prototype
 
   // Find all version tags.
   let tags = git.tags()
@@ -38,6 +41,10 @@ function release(dir, ver) {
     let head_sha = git.head()
     if (head_sha == latest_sha)
       fatal(`Nothing has changed since v${latest}`, 'NO_CHANGES')
+
+    log(latest + ' -> ' + ver)
+  } else {
+    log(zero + ' -> ' + ver)
   }
 
   // Bump the version.
@@ -53,6 +60,8 @@ function release(dir, ver) {
 
   // Use the existing upstream, or the default.
   let upstream = git.upstream() || 'origin/latest'
+
+  log('Pushing to: ' + upstream)
 
   // Publish the new version.
   git._exec('sh', publishPath, ver, ...upstream.split('/'))
