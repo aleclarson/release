@@ -25,11 +25,19 @@ function release(dir, ver, opts = {}) {
   // Find the latest version tag.
   let latest = tags.reduce(reduceLatest, null)
 
-  if (incRE.test(ver))
-    ver = semver.inc(latest || zero, ver)
+  if (!opts.rebase) {
+    if (incRE.test(ver))
+      ver = semver.inc(latest || zero, ver)
 
-  else if (semver.gt(latest || zero, ver))
-    fatal(`Latest version (${latest}) is greater than ` + ver, 'BAD_VER')
+    else if (semver.gt(latest || zero, ver))
+      fatal(`Latest version (${latest}) is greater than ` + ver, 'BAD_VER')
+  }
+  else if (!latest) {
+    fatal('Cannot rebase when no version exists', 'BAD_REBASE')
+  }
+  else {
+    ver = latest
+  }
 
   // Get commits since previous version.
   let sha_range
@@ -39,16 +47,22 @@ function release(dir, ver, opts = {}) {
       fatal(`Cannot find commit for v${latest}`, 'NO_LATEST_SHA')
 
     let head_sha = git.head()
-    if (head_sha == latest_sha)
+    if (opts.rebase) {
+      if (head_sha != latest_sha)
+        fatal('Expected HEAD to be a bump commit', 'BAD_REBASE')
+    }
+    else if (head_sha == latest_sha) {
       fatal(`Nothing has changed since v${latest}`, 'NO_CHANGES')
-
-    log(latest + ' -> ' + ver)
-  } else {
-    log(zero + ' -> ' + ver)
+    }
   }
 
-  // Bump the version.
-  git.bump(ver)
+  if (opts.rebase) {
+    log(ver + ' (rebase)')
+    git.exec('tag', '-d', ver)
+  } else {
+    log((latest || zero) + ' -> ' + ver)
+    git.bump(ver)
+  }
 
   // See if the `latest` branch exists.
   if (inArray(git.branches(), 'latest')) {

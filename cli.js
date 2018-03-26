@@ -6,6 +6,7 @@ let huey = require('huey')
 
 let ver
 let args = slurm({
+  R: true,
   P: true,
   p: () => (ver = 'patch', true),
   m: () => (ver = 'minor', true),
@@ -21,7 +22,7 @@ if (!ver) {
   if (!ver) {
     if (args.P) {
       ver = 'prerelease'
-    } else {
+    } else if (!args.R) {
       fatal('Please specify a version or release type')
     }
   }
@@ -29,9 +30,14 @@ if (!ver) {
   ver = 'pre' + ver
 }
 
+if (ver && args.R) {
+  fatal('-R must be used alone')
+}
+
 try {
   release(process.cwd(), ver, {
     log: console.log,
+    rebase: !!args.R,
   })
 } catch(err) {
   if (err.code) {
