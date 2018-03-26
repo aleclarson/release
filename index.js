@@ -29,8 +29,14 @@ function release(dir, ver, opts = {}) {
     if (incRE.test(ver))
       ver = semver.inc(latest || zero, ver)
 
+    else if (!semver.valid(ver))
+      fatal('Invalid version: ' + ver, 'BAD_VER')
+
     else if (semver.gt(latest || zero, ver))
       fatal(`Latest version (${latest}) is greater than ` + ver, 'BAD_VER')
+
+    else if (ver == latest || ver == zero)
+      fatal('The given version is already released: ' + ver, 'BAD_VER')
   }
   else if (!latest) {
     fatal('Cannot rebase when no version exists', 'BAD_REBASE')
