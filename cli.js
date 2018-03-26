@@ -4,9 +4,9 @@ let release = require('.')
 let slurm = require('slurm')
 let huey = require('huey')
 
-let ver, pre = false
+let ver
 let args = slurm({
-  P: () => pre = true,
+  P: true,
   p: () => (ver = 'patch', true),
   m: () => (ver = 'minor', true),
   M: () => (ver = 'major', true),
@@ -19,13 +19,13 @@ let args = slurm({
 if (!ver) {
   ver = args[0]
   if (!ver) {
-    if (pre) {
+    if (args.P) {
       ver = 'prerelease'
     } else {
       fatal('Please specify a version or release type')
     }
   }
-} else if (pre) {
+} else if (args.P) {
   ver = 'pre' + ver
 }
 
