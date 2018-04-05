@@ -29,11 +29,13 @@ $ release <version>
     -P --pre
       Prepend "pre" to the release type, if -p, -m, or -M is specified.
       Otherwise, set the release type to "prerelease".
+
+    -R
+      Rebase the current version.
 ```
 
 ### Wishlist
 
-- Delete prerelease tags before pushing a release
 - Integrate https://github.com/zeit/release
 - Look at commit messages to determine release type
 
