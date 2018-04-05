@@ -158,7 +158,7 @@ class Git {
     }
 
     this.exec('add', '-A')
-    this.exec('commit', '-m', ver)
+    this.exec('commit', '-m', ver, '--allow-empty')
   }
   exec(...args) {
     return this._exec('git', ...args)
