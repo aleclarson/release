@@ -144,9 +144,11 @@ class Git {
   bump(ver) {
     // Update the version in `package.json`
     let packPath = path.join(this.dir, 'package.json')
-    let pack = JSON.parse(fs.readFile(packPath))
+    let packJson = fs.readFile(packPath)
+    let pack = JSON.parse(packJson)
     pack.version = ver
-    fs.writeFile(packPath, JSON.stringify(pack, null, 2))
+    packJson = JSON.stringify(pack, null, 2) + /\n*$/.exec(packJson)[0]
+    fs.writeFile(packPath, packJson)
 
     // Update the version in `README.md`
     let readmePath = path.join(this.dir, 'README.md')
