@@ -88,9 +88,6 @@ function release(dir, ver, opts = {}) {
   try {
     // Publish the new version.
     git._exec('sh', publishPath, ver, ...upstream.split('/'))
-
-    // Return to the `master` branch.
-    git.checkout('master')
   }
   catch(err) {
     // Revert the bump commit.
@@ -103,6 +100,12 @@ function release(dir, ver, opts = {}) {
 
     throw err
   }
+
+  // End on master.
+  git.checkout('master')
+
+  // Ensure compiled files exist.
+  git._exec('npm', 'run', 'build', '-s', '--if-present')
 }
 
 module.exports = release
