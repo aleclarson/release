@@ -1,4 +1,4 @@
-# release v0.2.2 
+# release v0.3.0
 
 Easy semver releases.
 
