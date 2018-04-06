@@ -46,10 +46,11 @@ try {
     fatal(err.message)
   } else {
     console.log(huey.red(err.stack))
+    process.exit(1)
   }
 }
 
 function fatal(msg) {
   console.log(huey.red('Error: ') + msg)
-  process.exit()
+  process.exit(1)
 }
