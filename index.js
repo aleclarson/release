@@ -85,11 +85,24 @@ function release(dir, ver, opts = {}) {
 
   log('Pushing to: ' + upstream)
 
-  // Publish the new version.
-  git._exec('sh', publishPath, ver, ...upstream.split('/'))
+  try {
+    // Publish the new version.
+    git._exec('sh', publishPath, ver, ...upstream.split('/'))
 
-  // Return to the `master` branch.
-  git.checkout('master')
+    // Return to the `master` branch.
+    git.checkout('master')
+  }
+  catch(err) {
+    // Revert the bump commit.
+    git.reset('HEAD^', {hard: true})
+    git.checkout('master')
+    git.reset('HEAD^', {hard: !opts.unclean})
+
+    // Delete the tag if it exists.
+    git.exec('tag', '-d', ver)
+
+    throw err
+  }
 }
 
 module.exports = release
@@ -141,6 +154,7 @@ class Git {
   reset(ref, opts = {}) {
     let flags = []
     if (opts.hard) flags.push('--hard')
+    else flags.push('--soft')
     this.exec('reset', ...flags, ref)
   }
   bump(ver) {
