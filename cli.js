@@ -6,6 +6,7 @@ let huey = require('huey')
 
 let ver
 let args = slurm({
+  U: true,
   R: true,
   P: true,
   p: () => (ver = 'patch', true),
@@ -38,6 +39,7 @@ try {
   release(process.cwd(), ver, {
     log: console.log,
     rebase: !!args.R,
+    unclean: !!args.U,
   })
 } catch(err) {
   if (err.code) {

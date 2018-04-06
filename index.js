@@ -11,8 +11,10 @@ const zero = '0.0.0'
 function release(dir, ver, opts = {}) {
   let git = new Git(dir)
 
-  if (git.exec('status', '--porcelain'))
-    fatal('Please stash or commit your changes', 'NOT_CLEAN')
+  if (!opts.unclean || opts.rebase) {
+    if (git.exec('status', '--porcelain'))
+      fatal('Please stash or commit your changes', 'NOT_CLEAN')
+  }
 
   // Logging function
   let log = opts.log || Function.prototype
