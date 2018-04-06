@@ -1,8 +1,8 @@
 
 # Prepare the package for its release, and amend the bump commit.
-npm run prepublish -s &&
-npm run prepare -s &&
-npm run prepublishOnly -s &&
+npm run prepublish -s --if-present &&
+npm run prepare -s --if-present &&
+npm run prepublishOnly -s --if-present &&
 git add -A &&
 git commit --amend --no-edit
 
