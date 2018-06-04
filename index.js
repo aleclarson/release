@@ -165,6 +165,7 @@ class Git {
     let packPath = path.join(this.dir, 'package.json')
     let packJson = fs.readFile(packPath)
     let pack = JSON.parse(packJson)
+    let prev = pack.version
     pack.version = ver
     packJson = JSON.stringify(pack, null, 2) + /\n*$/.exec(packJson)[0]
     fs.writeFile(packPath, packJson)
@@ -173,7 +174,8 @@ class Git {
     let readmePath = path.join(this.dir, 'README.md')
     if (fs.isFile(readmePath)) {
       let readme = fs.readFile(readmePath)
-      fs.writeFile(readmePath, readme.replace(/\bv[\w\-\.]+\b/, 'v' + ver))
+      let titleRE = new RegExp(pack.name + ' v' + prev)
+      fs.writeFile(readmePath, readme.replace(titleRE, pack.name + ' v' + ver))
     }
 
     this.exec('add', '-A')
