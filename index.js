@@ -96,7 +96,9 @@ function release(dir, ver, opts = {}) {
     git.reset('HEAD^', {hard: !opts.unclean})
 
     // Delete the tag if it exists.
-    git.exec('tag', '-d', ver)
+    try {
+      git.exec('tag', '-d', ver)
+    } catch(e) {}
 
     throw err
   }
