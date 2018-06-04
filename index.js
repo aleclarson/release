@@ -57,7 +57,7 @@ function release(dir, ver, opts = {}) {
     let head_sha = git.head()
     if (opts.rebase) {
       if (head_sha != latest_sha)
-        fatal('Expected HEAD to be a bump commit', 'BAD_REBASE')
+        fatal('Expected HEAD to be latest: ' + latest, 'BAD_REBASE')
     }
     else if (head_sha == latest_sha) {
       fatal(`Nothing has changed since v${latest}`, 'NO_CHANGES')
