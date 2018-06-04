@@ -188,14 +188,17 @@ class Git {
   }
   _exec(cmd, ...args) {
     let res = cp.spawnSync(cmd, args, {cwd: this.dir})
-
-    if (res.error)
-      throw res.error
-
-    if (res.stderr.length == 0)
-      return res.stdout.toString().trim()
-
-    throw Error(res.stderr.toString().trim())
+    let err = res.error
+    if (!err) {
+      let str = res.stderr.toString().trim()
+      if (!str) str = res.stdout.toString().trim()
+      if (res.status > 0) {
+        err = Error(str.replace(/^error:\s*/i, ''))
+      } else {
+        return str
+      }
+    }
+    throw err
   }
 }
 
