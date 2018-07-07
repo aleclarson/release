@@ -125,6 +125,7 @@ class Repository {
       fatal('Not a git directory: ' + dir, 'NOT_GIT')
     }
     this.dir = dir
+    this.pack = this.read('package.json')
   }
   head() {
     return this.exec('rev-list', '-n', 1, 'HEAD')
@@ -164,27 +165,31 @@ class Repository {
     else flags.push('--soft')
     this.exec('reset', ...flags, ref)
   }
+  read(name) {
+    try {
+      const file = fs.readFile(path.join(this.dir, name))
+      return path.extname(name) == '.json' ? JSON.parse(file) : file
+    } catch(e) {}
+  }
+  write(name, data) {
+    if (path.extname(name) == '.json' && typeof data != 'string') {
+      data = JSON.stringify(data, null, 2) + '\n'
+    }
+    fs.writeFile(path.join(this.dir, name), data)
+  }
   bump(ver) {
     // Update the version in `package.json`
-    let packPath = path.join(this.dir, 'package.json')
-    let packJson = fs.readFile(packPath)
-    let pack = JSON.parse(packJson)
-    let prev = pack.version
-    pack.version = ver
-    packJson = JSON.stringify(pack, null, 2) + /\n*$/.exec(packJson)[0]
-    fs.writeFile(packPath, packJson)
+    let prev = this.pack.version
+    this.pack.version = ver
+    this.write('package.json', this.pack)
 
     // Update the `README.md` file
-    let readmePath = path.join(this.dir, 'README.md')
-    if (fs.isFile(readmePath)) {
-      let readme = fs.readFile(readmePath)
-
+    let readme = this.read('README.md')
+    if (readme) {
       // Replace the version in the title.
       let name = pack.name.split('/').pop()
       let titleRE = new RegExp(name + ' v' + prev.replace(/\./g, '\\.'))
-      readme = readme.replace(titleRE, name + ' v' + ver)
-
-      fs.writeFile(readmePath, readme)
+      this.write('README.md', readme.replace(titleRE, name + ' v' + ver))
     }
 
     this.exec('add', '-A')
