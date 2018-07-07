@@ -172,12 +172,17 @@ class Git {
     packJson = JSON.stringify(pack, null, 2) + /\n*$/.exec(packJson)[0]
     fs.writeFile(packPath, packJson)
 
-    // Update the version in `README.md`
+    // Update the `README.md` file
     let readmePath = path.join(this.dir, 'README.md')
     if (fs.isFile(readmePath)) {
       let readme = fs.readFile(readmePath)
-      let titleRE = new RegExp(pack.name + ' v' + prev)
-      fs.writeFile(readmePath, readme.replace(titleRE, pack.name + ' v' + ver))
+
+      // Replace the version in the title.
+      let name = pack.name.split('/').pop()
+      let titleRE = new RegExp(name + ' v' + prev.replace(/\./g, '\\.'))
+      readme = readme.replace(titleRE, name + ' v' + ver)
+
+      fs.writeFile(readmePath, readme)
     }
 
     this.exec('add', '-A')
