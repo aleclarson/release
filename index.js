@@ -9,10 +9,10 @@ const incRE = /^(major|premajor|minor|preminor|patch|prepatch|prerelease)$/
 const zero = '0.0.0'
 
 function release(dir, ver, opts = {}) {
-  let git = new Git(dir)
+  let repo = new Repository(dir)
 
   if (!opts.unclean || opts.rebase) {
-    if (git.exec('status', '--porcelain'))
+    if (repo.exec('status', '--porcelain'))
       fatal('Please stash or commit your changes', 'NOT_CLEAN')
   }
 
@@ -20,7 +20,7 @@ function release(dir, ver, opts = {}) {
   let log = opts.log || Function.prototype
 
   // Find all version tags.
-  let tags = git.tags()
+  let tags = repo.tags()
     .map(semver.clean)
     .filter(x => x)
 
@@ -50,11 +50,11 @@ function release(dir, ver, opts = {}) {
   // Get commits since previous version.
   let sha_range
   if (latest) {
-    let latest_sha = git.grep(`^${latest}$`)[0]
+    let latest_sha = repo.grep(`^${latest}$`)[0]
     if (!latest_sha)
       fatal(`Cannot find commit for v${latest}`, 'NO_LATEST_SHA')
 
-    let head_sha = git.head()
+    let head_sha = repo.head()
     if (opts.rebase) {
       if (head_sha != latest_sha)
         fatal('Expected HEAD to be latest: ' + latest, 'BAD_REBASE')
@@ -66,48 +66,51 @@ function release(dir, ver, opts = {}) {
 
   if (opts.rebase) {
     log(ver + ' (rebase)')
-    git.exec('tag', '-d', ver)
+    repo.exec('tag', '-d', ver)
   } else {
     log((latest || zero) + ' -> ' + ver)
-    git.bump(ver)
+    repo.bump(ver)
   }
 
   // See if the `latest` branch exists.
-  if (inArray(git.branches(), 'latest')) {
-    git.checkout('latest')
-    git.reset('master', {hard: true})
+  if (inArray(repo.branches(), 'latest')) {
+    repo.checkout('latest')
+    repo.reset('master', {hard: true})
   } else {
-    git.checkout('latest', true)
+    repo.checkout('latest', true)
   }
 
   // Use the existing upstream, or the default.
-  let upstream = git.upstream() || 'origin/latest'
+  let upstream = repo.upstream() || 'origin/latest'
 
   log('Pushing to: ' + upstream)
 
   try {
     // Publish the new version.
-    git._exec('sh', publishPath, ver, ...upstream.split('/'))
+    repo._exec('sh', publishPath, ver, ...upstream.split('/'))
   }
   catch(err) {
     // Revert the bump commit.
-    git.reset('HEAD^', {hard: true})
-    git.checkout('master')
-    git.reset('HEAD^', {hard: !opts.unclean})
+    repo.reset('HEAD^', {hard: true})
+    repo.checkout('master')
+    repo.reset('HEAD^', {hard: !opts.unclean})
 
     // Delete the tag if it exists.
     try {
-      git.exec('tag', '-d', ver)
+      repo.exec('tag', '-d', ver)
     } catch(e) {}
 
     throw err
   }
 
   // End on master.
-  git.checkout('master')
+  repo.checkout('master')
+
+  // Ensure source files exist.
+  repo.reset('HEAD', {hard: !opts.unclean})
 
   // Ensure compiled files exist.
-  git._exec('npm', 'run', 'build', '-s', '--if-present')
+  repo._exec('npm', 'run', 'build', '-s', '--if-present')
 }
 
 module.exports = release
@@ -116,22 +119,21 @@ function reduceLatest(latest, tag) {
   return !latest || semver.gt(tag, latest) ? tag : latest
 }
 
-class Git {
+class Repository {
   constructor(dir) {
-    this.dir = dir
-    this.git = path.join(dir, '.git')
-    if (!fs.isDir(this.git)) {
+    if (!fs.isDir(path.join(dir, '.git'))) {
       fatal('Not a git directory: ' + dir, 'NOT_GIT')
     }
+    this.dir = dir
   }
   head() {
     return this.exec('rev-list', '-n', 1, 'HEAD')
   }
   tags() {
-    return fs.readDir(path.join(this.git, 'refs/tags'))
+    return fs.readDir(path.join(this.dir, '.git/refs/tags'))
   }
   branches() {
-    return fs.readDir(path.join(this.git, 'refs/heads'))
+    return fs.readDir(path.join(this.dir, '.git/refs/heads'))
   }
   grep(regex) {
     let commits = this.exec('log', '--grep', regex, '--pretty=format:"%H"')
