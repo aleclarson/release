@@ -1,10 +1,13 @@
-const inArray = require('in-array')
+const Repository = require('./lib/repository')
+const ignored = require('./lib/ignored')
 const semver = require('semver')
+const exec = require('./lib/exec')
 const path = require('path')
 const fs = require('fsx')
-const cp = require('child_process')
 
-const publishPath = path.join(__dirname, 'publish.sh')
+const BUILD = path.join(__dirname, 'build.sh')
+const PUBLISH = path.join(__dirname, 'publish.sh')
+
 const incRE = /^(major|premajor|minor|preminor|patch|prepatch|prerelease)$/
 const zero = '0.0.0'
 
@@ -64,154 +67,88 @@ function release(dir, ver, opts = {}) {
     }
   }
 
-  if (opts.rebase) {
-    log(ver + ' (rebase)')
-    repo.exec('tag', '-d', ver)
-  } else {
-    log((latest || zero) + ' -> ' + ver)
-    repo.bump(ver)
+  if (opts.unclean) {
+    repo.exec('stash', '-u')
   }
-
-  // See if the `latest` branch exists.
-  if (inArray(repo.branches(), 'latest')) {
-    repo.checkout('latest')
-    repo.reset('master', {hard: true})
-  } else {
-    repo.checkout('latest', true)
-  }
-
-  // Use the existing upstream, or the default.
-  let upstream = repo.upstream() || 'origin/latest'
-
-  log('Pushing to: ' + upstream)
 
   try {
-    // Publish the new version.
-    repo._exec('sh', publishPath, ver, ...upstream.split('/'))
-  }
-  catch(err) {
-    // Revert the bump commit.
-    repo.reset('HEAD^', {hard: true})
-    repo.checkout('master')
-    repo.reset('HEAD^', {hard: !opts.unclean})
-
-    // Delete the tag if it exists.
-    try {
+    if (opts.rebase) {
+      log(ver + ' (rebase)')
       repo.exec('tag', '-d', ver)
-    } catch(e) {}
+    } else {
+      log((latest || zero) + ' -> ' + ver)
+      repo.bump(ver)
+    }
 
-    throw err
+    // See if the `latest` branch exists.
+    if (repo.branches().includes('latest')) {
+      repo.checkout('latest')
+      repo.reset('master', {hard: true})
+    } else {
+      repo.checkout('latest', true)
+    }
+
+    try {
+      // Run scripts.
+      if (repo.pack) {
+        exec('sh', [BUILD], repo.dir)
+      }
+
+      if (!opts.rebase) {
+        // Remove unpublished files
+        let paths = ignored(repo, opts)
+        if (paths) {
+          repo.write('.gitignore', paths.join('\n'))
+          repo.exec('rm', '-r', '--cached', '.')
+          repo.exec('add', '-A')
+          repo.exec('commit', '--amend', '--no-edit')
+        }
+      }
+
+      // Use the existing upstream, or the default.
+      let upstream = repo.upstream() || 'origin/latest'
+
+      log('Pushing to: ' + upstream)
+      upstream = upstream.split('/')
+
+      // Publish the new version.
+      exec('sh', [PUBLISH, ver, ...upstream], repo.dir)
+
+      // End on master.
+      repo.checkout('master')
+
+      // Ensure source files exist.
+      repo.reset('HEAD', {hard: true})
+    }
+    catch(err) {
+      // Revert the bump commits on the "latest" and "master" branches.
+      repo.reset('HEAD^', {hard: true})
+      repo.checkout('master')
+      repo.reset('HEAD^', {hard: true})
+
+      // Delete the tag if it exists.
+      try {
+        repo.exec('tag', '-d', ver)
+      } catch(e) {}
+
+      throw err
+    }
+  } finally {
+    if (opts.unclean) {
+      repo.exec('stash', 'pop')
+    }
   }
-
-  // End on master.
-  repo.checkout('master')
-
-  // Ensure source files exist.
-  repo.reset('HEAD', {hard: !opts.unclean})
 
   // Ensure compiled files exist.
-  repo._exec('npm', 'run', 'build', '-s', '--if-present')
+  if (repo.pack) {
+    exec('npm', ['run', 'build', '-s', '--if-present'], repo.dir)
+  }
 }
 
 module.exports = release
 
 function reduceLatest(latest, tag) {
   return !latest || semver.gt(tag, latest) ? tag : latest
-}
-
-class Repository {
-  constructor(dir) {
-    if (!fs.isDir(path.join(dir, '.git'))) {
-      fatal('Not a git directory: ' + dir, 'NOT_GIT')
-    }
-    this.dir = dir
-    this.pack = this.read('package.json')
-  }
-  head() {
-    return this.exec('rev-list', '-n', 1, 'HEAD')
-  }
-  tags() {
-    return fs.readDir(path.join(this.dir, '.git/refs/tags'))
-  }
-  branches() {
-    return fs.readDir(path.join(this.dir, '.git/refs/heads'))
-  }
-  grep(regex) {
-    let commits = this.exec('log', '--grep', regex, '--pretty=format:"%H"')
-    return commits ? commits.split('\n').map(JSON.parse) : []
-  }
-  checkout(branch, is_new) {
-    let flags = []
-    if (is_new) flags.push('-b')
-    try {
-      this.exec('checkout', ...flags, branch)
-    } catch(err) {
-      if (!/^Switched to /.test(err.message))
-        throw err
-    }
-  }
-  upstream(ref) {
-    try {
-      return this.exec(
-        'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}')
-    } catch(err) {
-      if (!/no upstream /.test(err.message))
-        throw err
-    }
-  }
-  reset(ref, opts = {}) {
-    let flags = []
-    if (opts.hard) flags.push('--hard')
-    else flags.push('--soft')
-    this.exec('reset', ...flags, ref)
-  }
-  read(name) {
-    try {
-      const file = fs.readFile(path.join(this.dir, name))
-      return path.extname(name) == '.json' ? JSON.parse(file) : file
-    } catch(e) {}
-  }
-  write(name, data) {
-    if (path.extname(name) == '.json' && typeof data != 'string') {
-      data = JSON.stringify(data, null, 2) + '\n'
-    }
-    fs.writeFile(path.join(this.dir, name), data)
-  }
-  bump(ver) {
-    // Update the version in `package.json`
-    let prev = this.pack.version
-    this.pack.version = ver
-    this.write('package.json', this.pack)
-
-    // Update the `README.md` file
-    let readme = this.read('README.md')
-    if (readme) {
-      // Replace the version in the title.
-      let name = pack.name.split('/').pop()
-      let titleRE = new RegExp(name + ' v' + prev.replace(/\./g, '\\.'))
-      this.write('README.md', readme.replace(titleRE, name + ' v' + ver))
-    }
-
-    this.exec('add', '-A')
-    this.exec('commit', '-m', ver, '--allow-empty')
-  }
-  exec(...args) {
-    return this._exec('git', ...args)
-  }
-  _exec(cmd, ...args) {
-    let res = cp.spawnSync(cmd, args, {cwd: this.dir})
-    let err = res.error
-    if (!err) {
-      let str = res.stderr.toString().trim()
-      if (!str) str = res.stdout.toString().trim()
-      if (res.status > 0) {
-        err = Error(str.replace(/^error:\s*/i, ''))
-      } else {
-        return str
-      }
-    }
-    throw err
-  }
 }
 
 function fatal(msg, code) {

@@ -2,40 +2,36 @@
 
 Easy semver releases.
 
-- Creates a local branch named `latest`
-- Stays in sync with `master`
-- Runs the `prepublishOnly` script
-- Bumps the version and tags it
-- Pushes to `origin/latest` by default
+#### How it works
+- stash changes and untracked files (you must use the `-u` flag)
+- if the `files` array exists in `package.json`:
+  - delete any paths *not* in that array
+- delete any paths matching the `-x` globs
+- update the package version
+- ensure the `latest` branch exists
+- reset the `latest` branch to `master`
+- run these scripts in order:
+  - `build`, `prepublish`, `prepare`, `prepublishOnly`
+- commit changes with a message like `1.0.0`
+- create a semver tag like `1.0.0`
+- force push to `origin/latest`
+- end on `master` branch
 
-### CLI
+## CLI
 
 ```sh
-$ release <version>
-
-  The <version> is required if no release type is specified.
-
-  Options:
-
-    -p --patch
-      Bump the patch version. (eg: 1.0.0 -> 1.0.1)
-
-    -m --minor
-      Bump the minor version. (eg: 0.0.5 -> 0.1.0)
-
-    -M --major
-      Bump the major version. (eg: 0.1.1 -> 1.0.0)
-
-    -P --pre
-      Prepend "pre" to the release type, if -p, -m, or -M is specified.
-      Otherwise, set the release type to "prerelease".
-
-    -R
-      Rebase the current version.
+release 0.0.1   # specify exact version
+release -p      # bump the patch version
+release -m      # bump the minor version, set patch to 0
+release -M      # bump the major version, set patch/minor to 0
+release -R      # rebase the current version
 ```
 
-### Wishlist
-
-- Integrate https://github.com/zeit/release
-- Look at commit messages to determine release type
-
+#### Flags
+- `-p --patch` set release type to "patch"
+- `-m --minor` set release type to "minor"
+- `-M --major` set release type to "major"
+- `-P --pre` prepend "pre" when used with `-p`, `-m`, or `-M`; otherwise, set release type to "prerelease"
+- `-R --rebase` update the current version (useful after a rebase)
+- `-u --stash` stash changes and untracked files
+- `-x --exclude` globs excluded from the `latest` branch

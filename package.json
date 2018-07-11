@@ -3,10 +3,11 @@
   "version": "0.4.1",
   "dependencies": {
     "fsx": "aleclarson/fsx#1.6.0",
+    "glob-regex": "^0.3.0",
     "huey": "aleclarson/huey#0.1.0",
-    "in-array": "^0.1.0",
+    "recrawl": "^0.0.2",
     "semver": "^5.5.0",
-    "slurm": "^0.3.0"
+    "slurm": "^0.4.0"
   },
   "bin": {
     "release": "./cli.js"

@@ -4,19 +4,33 @@ let release = require('.')
 let slurm = require('slurm')
 let huey = require('huey')
 
+slurm.error = fatal
+
 let ver
 let args = slurm({
-  U: true,
-  R: true,
-  P: true,
+  P: {type: 'boolean'},
   p: () => (ver = 'patch', true),
   m: () => (ver = 'minor', true),
   M: () => (ver = 'major', true),
+  R: {type: 'boolean'},
+  u: {type: 'boolean'},
+  x: {list: true},
+  h: true,
+  help: true,
   pre: 'P',
   patch: 'p',
   minor: 'm',
   major: 'M',
+  rebase: 'R',
+  exclude: 'x',
+  stash: 'u',
 })
+
+if (args._ == '--help' || args._ == '-h' || args._ == '') {
+  const help = __dirname + '/help.md'
+  console.log(require('fs').readFileSync(help, 'utf8'))
+  process.exit()
+}
 
 if (!ver) {
   ver = args[0]
@@ -39,7 +53,8 @@ try {
   release(process.cwd(), ver, {
     log: console.log,
     rebase: !!args.R,
-    unclean: !!args.U,
+    ignore: args.x,
+    unclean: !!args.u,
   })
 } catch(err) {
   if (err.code) {
@@ -51,6 +66,6 @@ try {
 }
 
 function fatal(msg) {
-  console.log(huey.red('Error: ') + msg)
+  console.log(huey.red('error: ') + msg)
   process.exit(1)
 }
