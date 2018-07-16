@@ -94,15 +94,13 @@ function release(dir, ver, opts = {}) {
         exec('sh', [BUILD], repo.dir)
       }
 
-      if (!opts.rebase) {
-        // Remove unpublished files
-        let paths = ignored(repo, opts)
-        if (paths) {
-          repo.write('.gitignore', paths.join('\n'))
-          repo.exec('rm', '-r', '--cached', '.')
-          repo.exec('add', '-A')
-          repo.exec('commit', '--amend', '--no-edit')
-        }
+      // Remove unpublished files
+      let paths = ignored(repo, opts)
+      if (paths) {
+        repo.write('.gitignore', paths.join('\n'))
+        repo.exec('rm', '-r', '--cached', '.')
+        repo.exec('add', '-A')
+        repo.exec('commit', '--amend', '--no-edit')
       }
 
       // Use the existing upstream, or the default.
