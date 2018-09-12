@@ -100,6 +100,7 @@ function release(dir, ver, opts = {}) {
         repo.write('.gitignore', paths.join('\n'))
         repo.exec('rm', '-r', '--cached', '.')
         repo.exec('add', '-A')
+        repo.exec('rm', '--cached', '.gitignore')
         repo.exec('commit', '--amend', '--no-edit')
       }
 
@@ -113,7 +114,7 @@ function release(dir, ver, opts = {}) {
       exec('sh', [PUBLISH, ver, ...upstream], repo.dir)
 
       // End on master.
-      repo.checkout('master')
+      repo.exec('checkout', 'master', '-f')
 
       // Ensure source files exist.
       repo.reset('HEAD', {hard: true})
