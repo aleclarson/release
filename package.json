@@ -1,6 +1,6 @@
 {
   "name": "@aleclarson/release",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "dependencies": {
     "fsx": "aleclarson/fsx#1.6.0",
     "glob-regex": "^0.3.0",
