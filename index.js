@@ -88,6 +88,15 @@ function release(dir, ver, opts = {}) {
       repo.checkout('latest', true)
     }
 
+    // Avoid running hooks in the `latest` branch.
+    let hooks = repo.hooks()
+    hooks.forEach(hook => {
+      fs.rename(
+        repo.hook(hook),
+        repo.hook('_' + hook)
+      )
+    })
+
     try {
       // Run scripts.
       if (repo.pack) {
@@ -131,6 +140,15 @@ function release(dir, ver, opts = {}) {
       } catch(e) {}
 
       throw err
+    }
+    finally {
+      // Restore any git hooks.
+      hooks.forEach(hook => {
+        fs.rename(
+          repo.hook('_' + hook),
+          repo.hook(hook)
+        )
+      })
     }
   } finally {
     if (opts.unclean) {
