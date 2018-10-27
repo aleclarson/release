@@ -1,6 +1,6 @@
 {
   "name": "@aleclarson/release",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "dependencies": {
     "chalk": "^2.4.1",
     "fsx": "aleclarson/fsx#1.6.0",
