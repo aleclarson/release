@@ -57,7 +57,7 @@ try {
     log: !args.quiet && console.log,
     rebase: !!args.R,
     ignore: args.x,
-    unclean: !!args.u,
+    stash: !!args.s,
   })
 } catch (err) {
   if (err.code) {

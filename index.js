@@ -14,7 +14,7 @@ const zero = '0.0.0'
 function release(dir, ver, opts = {}) {
   let repo = new Repository(dir)
 
-  if (!opts.unclean || opts.rebase) {
+  if (!opts.stash || opts.rebase) {
     if (repo.exec('status', '--porcelain'))
       fatal('Please stash or commit your changes', 'NOT_CLEAN')
   }
@@ -67,7 +67,7 @@ function release(dir, ver, opts = {}) {
 
   if (opts.dry) {
     log('Stashing...')
-  } else if (opts.unclean) {
+  } else if (opts.stash) {
     repo.exec('stash', '-u')
   }
 
