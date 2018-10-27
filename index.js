@@ -12,7 +12,7 @@ const incRE = /^(major|premajor|minor|preminor|patch|prepatch|prerelease)$/
 const zero = '0.0.0'
 
 function release(dir, ver, opts = {}) {
-  let repo = new Repository(dir)
+  let repo = new Repository(dir, opts)
 
   if (!opts.stash || opts.rebase) {
     if (repo.exec('status', '--porcelain'))
