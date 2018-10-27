@@ -51,7 +51,6 @@ function release(dir, ver, opts = {}) {
   }
 
   // Get commits since previous version.
-  let sha_range
   if (latest) {
     let latest_sha = repo.grep(`^${latest}$`)[0]
     if (!latest_sha)
