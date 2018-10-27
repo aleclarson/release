@@ -25,7 +25,6 @@ let args = slurm({
   exclude: 'x',
   stash: 'u',
   dry: {type: 'boolean'},
-  D: 'dry',
 })
 
 if (args._ == '--help' || args._ == '-h' || args._ == '') {
