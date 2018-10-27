@@ -1,3 +1,4 @@
+const { gray, green, red } = require('chalk')
 const Repository = require('./lib/repository')
 const ignored = require('./lib/ignored')
 const semver = require('semver')
@@ -31,11 +32,11 @@ function release(dir, ver, opts = {}) {
   // Find the latest version tag.
   let latest = tags.reduce(reduceLatest, null)
 
-  if (opts.dry) {
+  if (opts.dry && tags.length) {
     log('')
-    log('Found versions:\n', tags.map(tag => '  ' + tag).join('\n'))
+    log(gray('Found versions:\n', tags.map(tag => '  ' + tag).join('\n')))
     log('')
-    log('Found latest:', latest)
+    log(gray('Found latest:', latest))
   }
 
   if (!opts.rebase) {
@@ -65,20 +66,21 @@ function release(dir, ver, opts = {}) {
     }
   }
 
-  if (opts.dry) {
-    log('Stashing...')
-  } else if (opts.stash) {
+  if (opts.stash) {
     repo.exec('stash', '-u')
   }
 
   try {
     if (opts.rebase) {
       log(ver, '(rebase)')
-      if (opts.dry) return
       repo.exec('tag', '-d', ver)
     } else {
-      log(latest || zero, '->', ver)
-      if (opts.dry) return
+      log('')
+      log(repo.pack.name)
+      log(
+        green('  + ' + ver),
+        gray(latest ? '(was ' + latest + ')' : '(debut)')
+      )
       repo.bump(ver)
     }
 
@@ -115,11 +117,18 @@ function release(dir, ver, opts = {}) {
       // Use the existing upstream, or the default.
       let upstream = repo.upstream() || 'origin/latest'
 
-      log('Pushing to:', upstream)
+      let color = opts.dry ? red : arg => arg
+      log('')
+      log((opts.dry ? gray('(skip) ') : '') + color('Pushing to:'), upstream)
       upstream = upstream.split('/')
 
       // Publish the new version.
-      exec('sh', [PUBLISH, ver, ...upstream], repo.dir)
+      if (opts.dry) {
+        log('')
+        log(gray('(skip)'), red('Publishing:'), repo.pack.name + '@' + ver)
+      } else {
+        exec('sh', [PUBLISH, ver, ...upstream], repo.dir)
+      }
 
       // End on master.
       repo.exec('checkout', 'master', '-f')
@@ -145,15 +154,19 @@ function release(dir, ver, opts = {}) {
       })
     }
   } finally {
-    if (opts.dry) return
-    if (opts.unclean) {
+    if (opts.stash) {
       repo.exec('stash', 'pop')
     }
   }
 
   // Ensure compiled files exist.
   if (repo.pack) {
-    exec('npm', ['run', 'build', '-s', '--if-present'], repo.dir)
+    if (opts.dry) {
+      log('')
+      log(gray('(skip)'), red('npm run build -s --if-present'))
+    } else {
+      exec('npm', ['run', 'build', '-s', '--if-present'], repo.dir)
+    }
   }
 }
 
