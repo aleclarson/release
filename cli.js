@@ -25,6 +25,7 @@ let args = slurm({
   exclude: 'x',
   stash: 's',
   dry: {type: 'boolean'},
+  quiet: {type: 'boolean'},
 })
 
 if (args._ == '--help' || args._ == '-h' || args._ == '') {
@@ -53,7 +54,7 @@ if (ver && args.R) {
 try {
   release(process.cwd(), ver, {
     dry: !!args.dry,
-    log: console.log,
+    log: !args.quiet && console.log,
     rebase: !!args.R,
     ignore: args.x,
     unclean: !!args.u,
