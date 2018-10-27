@@ -72,10 +72,10 @@ function release(dir, ver, opts = {}) {
 
   try {
     if (opts.rebase) {
-      log(ver + ' (rebase)')
+      log(ver, '(rebase)')
       repo.exec('tag', '-d', ver)
     } else {
-      log((latest || zero) + ' -> ' + ver)
+      log(latest || zero, '->', ver)
       repo.bump(ver)
     }
 
@@ -115,7 +115,7 @@ function release(dir, ver, opts = {}) {
       // Use the existing upstream, or the default.
       let upstream = repo.upstream() || 'origin/latest'
 
-      log('Pushing to: ' + upstream)
+      log('Pushing to:', upstream)
       upstream = upstream.split('/')
 
       // Publish the new version.
