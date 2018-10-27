@@ -11,5 +11,8 @@
   },
   "bin": {
     "release": "./cli.js"
+  },
+  "devDependencies": {
+    "prettier": "^1.14.3"
   }
 }
