@@ -2,7 +2,10 @@
 
 Easy semver releases.
 
-#### How it works
+### How it works
+
+Here is everything `release` does (in order):
+
 - stash changes and untracked files (you must use the `-s` flag)
 - if the `files` array exists in `package.json`:
   - delete any paths *not* in that array
@@ -16,6 +19,8 @@ Easy semver releases.
 - create a semver tag like `1.0.0`
 - force push to `origin/latest`
 - end on `master` branch
+
+Experiment with the `--dry` flag (so no changes are made).
 
 ## CLI
 
