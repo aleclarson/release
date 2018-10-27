@@ -2,7 +2,7 @@
 
 let release = require('.')
 let slurm = require('slurm')
-let huey = require('huey')
+let chalk = require('chalk')
 
 slurm.error = fatal
 
@@ -63,12 +63,12 @@ try {
   if (err.code) {
     fatal(err.message)
   } else {
-    console.log(huey.red(err.stack))
+    console.log(chalk.red(err.stack))
     process.exit(1)
   }
 }
 
 function fatal(msg) {
-  console.log(huey.red('error: ') + msg)
+  console.log(chalk.red('error: ') + msg)
   process.exit(1)
 }
