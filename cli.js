@@ -8,13 +8,13 @@ slurm.error = fatal
 
 let ver
 let args = slurm({
-  P: {type: 'boolean'},
-  p: () => (ver = 'patch', true),
-  m: () => (ver = 'minor', true),
-  M: () => (ver = 'major', true),
-  R: {type: 'boolean'},
-  s: {type: 'boolean'},
-  x: {list: true},
+  P: { type: 'boolean' },
+  p: () => ((ver = 'patch'), true),
+  m: () => ((ver = 'minor'), true),
+  M: () => ((ver = 'major'), true),
+  R: { type: 'boolean' },
+  s: { type: 'boolean' },
+  x: { list: true },
   h: true,
   help: true,
   pre: 'P',
@@ -24,8 +24,8 @@ let args = slurm({
   rebase: 'R',
   exclude: 'x',
   stash: 's',
-  dry: {type: 'boolean'},
-  quiet: {type: 'boolean'},
+  dry: { type: 'boolean' },
+  quiet: { type: 'boolean' },
 })
 
 if (args._ == '--help' || args._ == '-h' || args._ == '') {
@@ -59,7 +59,7 @@ try {
     ignore: args.x,
     unclean: !!args.u,
   })
-} catch(err) {
+} catch (err) {
   if (err.code) {
     fatal(err.message)
   } else {

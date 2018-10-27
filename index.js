@@ -23,7 +23,8 @@ function release(dir, ver, opts = {}) {
   let log = opts.log || Function.prototype
 
   // Find all version tags.
-  let tags = repo.tags()
+  let tags = repo
+    .tags()
     .map(semver.clean)
     .filter(x => x)
 
@@ -38,45 +39,35 @@ function release(dir, ver, opts = {}) {
   }
 
   if (!opts.rebase) {
-    if (incRE.test(ver))
-      ver = semver.inc(latest || zero, ver)
-
-    else if (!semver.valid(ver))
-      fatal('Invalid version: ' + ver, 'BAD_VER')
-
+    if (incRE.test(ver)) ver = semver.inc(latest || zero, ver)
+    else if (!semver.valid(ver)) fatal('Invalid version: ' + ver, 'BAD_VER')
     else if (semver.gt(latest || zero, ver))
       fatal(`Latest version (${latest}) is greater than ` + ver, 'BAD_VER')
-
     else if (ver == latest || ver == zero)
       fatal('The given version is already released: ' + ver, 'BAD_VER')
-  }
-  else if (!latest) {
+  } else if (!latest) {
     fatal('Cannot rebase when no version exists', 'BAD_REBASE')
-  }
-  else {
+  } else {
     ver = latest
   }
 
   // Get commits since previous version.
   if (latest) {
     let latest_sha = repo.grep(`^${latest}$`)[0]
-    if (!latest_sha)
-      fatal(`Cannot find commit for v${latest}`, 'NO_LATEST_SHA')
+    if (!latest_sha) fatal(`Cannot find commit for v${latest}`, 'NO_LATEST_SHA')
 
     let head_sha = repo.head()
     if (opts.rebase) {
       if (head_sha != latest_sha)
         fatal('Expected HEAD to be latest: ' + latest, 'BAD_REBASE')
-    }
-    else if (head_sha == latest_sha) {
+    } else if (head_sha == latest_sha) {
       fatal(`Nothing has changed since v${latest}`, 'NO_CHANGES')
     }
   }
 
   if (opts.dry) {
     log('Stashing...')
-  }
-  else if (opts.unclean) {
+  } else if (opts.unclean) {
     repo.exec('stash', '-u')
   }
 
@@ -94,7 +85,7 @@ function release(dir, ver, opts = {}) {
     // See if the `latest` branch exists.
     if (repo.branches().includes('latest')) {
       repo.checkout('latest')
-      repo.reset('master', {hard: true})
+      repo.reset('master', { hard: true })
     } else {
       repo.checkout('latest', true)
     }
@@ -102,10 +93,7 @@ function release(dir, ver, opts = {}) {
     // Avoid running hooks in the `latest` branch.
     let hooks = repo.hooks()
     hooks.forEach(hook => {
-      fs.rename(
-        repo.hook(hook),
-        repo.hook('_' + hook)
-      )
+      fs.rename(repo.hook(hook), repo.hook('_' + hook))
     })
 
     try {
@@ -137,28 +125,23 @@ function release(dir, ver, opts = {}) {
       repo.exec('checkout', 'master', '-f')
 
       // Ensure source files exist.
-      repo.reset('HEAD', {hard: true})
-    }
-    catch(err) {
+      repo.reset('HEAD', { hard: true })
+    } catch (err) {
       // Revert the bump commits on the "latest" and "master" branches.
-      repo.reset('HEAD^', {hard: true})
+      repo.reset('HEAD^', { hard: true })
       repo.checkout('master')
-      repo.reset('HEAD^', {hard: true})
+      repo.reset('HEAD^', { hard: true })
 
       // Delete the tag if it exists.
       try {
         repo.exec('tag', '-d', ver)
-      } catch(e) {}
+      } catch (e) {}
 
       throw err
-    }
-    finally {
+    } finally {
       // Restore any git hooks.
       hooks.forEach(hook => {
-        fs.rename(
-          repo.hook('_' + hook),
-          repo.hook(hook)
-        )
+        fs.rename(repo.hook('_' + hook), repo.hook(hook))
       })
     }
   } finally {
