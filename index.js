@@ -30,6 +30,13 @@ function release(dir, ver, opts = {}) {
   // Find the latest version tag.
   let latest = tags.reduce(reduceLatest, null)
 
+  if (opts.dry) {
+    log('')
+    log('Found versions:\n', tags.map(tag => '  ' + tag).join('\n'))
+    log('')
+    log('Found latest:', latest)
+  }
+
   if (!opts.rebase) {
     if (incRE.test(ver))
       ver = semver.inc(latest || zero, ver)
@@ -66,16 +73,21 @@ function release(dir, ver, opts = {}) {
     }
   }
 
-  if (opts.unclean) {
+  if (opts.dry) {
+    log('Stashing...')
+  }
+  else if (opts.unclean) {
     repo.exec('stash', '-u')
   }
 
   try {
     if (opts.rebase) {
       log(ver, '(rebase)')
+      if (opts.dry) return
       repo.exec('tag', '-d', ver)
     } else {
       log(latest || zero, '->', ver)
+      if (opts.dry) return
       repo.bump(ver)
     }
 
@@ -150,6 +162,7 @@ function release(dir, ver, opts = {}) {
       })
     }
   } finally {
+    if (opts.dry) return
     if (opts.unclean) {
       repo.exec('stash', 'pop')
     }

@@ -24,6 +24,8 @@ let args = slurm({
   rebase: 'R',
   exclude: 'x',
   stash: 'u',
+  dry: {type: 'boolean'},
+  D: 'dry',
 })
 
 if (args._ == '--help' || args._ == '-h' || args._ == '') {
@@ -51,6 +53,7 @@ if (ver && args.R) {
 
 try {
   release(process.cwd(), ver, {
+    dry: !!args.dry,
     log: console.log,
     rebase: !!args.R,
     ignore: args.x,
