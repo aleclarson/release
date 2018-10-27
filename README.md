@@ -35,3 +35,4 @@ release -R      # rebase the current version
 - `-R --rebase` update the current version (useful after a rebase)
 - `-s --stash` stash changes and untracked files
 - `-x --exclude` globs excluded from the `latest` branch
+- `--dry` see what happens without doing it
