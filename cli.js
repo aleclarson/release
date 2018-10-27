@@ -13,7 +13,7 @@ let args = slurm({
   m: () => (ver = 'minor', true),
   M: () => (ver = 'major', true),
   R: {type: 'boolean'},
-  u: {type: 'boolean'},
+  s: {type: 'boolean'},
   x: {list: true},
   h: true,
   help: true,
@@ -23,7 +23,7 @@ let args = slurm({
   major: 'M',
   rebase: 'R',
   exclude: 'x',
-  stash: 'u',
+  stash: 's',
   dry: {type: 'boolean'},
 })
 
