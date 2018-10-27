@@ -3,7 +3,7 @@
 Easy semver releases.
 
 #### How it works
-- stash changes and untracked files (you must use the `-u` flag)
+- stash changes and untracked files (you must use the `-s` flag)
 - if the `files` array exists in `package.json`:
   - delete any paths *not* in that array
 - delete any paths matching the `-x` globs
@@ -33,5 +33,5 @@ release -R      # rebase the current version
 - `-M --major` set release type to "major"
 - `-P --pre` prepend "pre" when used with `-p`, `-m`, or `-M`; otherwise, set release type to "prerelease"
 - `-R --rebase` update the current version (useful after a rebase)
-- `-u --stash` stash changes and untracked files
+- `-s --stash` stash changes and untracked files
 - `-x --exclude` globs excluded from the `latest` branch
