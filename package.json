@@ -16,14 +16,14 @@
     "lib"
   ],
   "dependencies": {
-    "chalk": "^2.4.1",
+    "chalk": "2.4.1",
     "fsx": "aleclarson/fsx#1.6.0",
-    "glob-regex": "^0.3.0",
-    "recrawl": "^0.0.2",
-    "semver": "^5.5.0",
-    "slurm": "^0.4.0"
+    "glob-regex": "0.3.2",
+    "recrawl": "0.0.2",
+    "semver": "5.6.0",
+    "slurm": "0.4.0"
   },
   "devDependencies": {
-    "prettier": "^1.14.3"
+    "prettier": "1.15.3"
   }
 }
