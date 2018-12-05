@@ -17,7 +17,7 @@
   ],
   "dependencies": {
     "chalk": "^2.4.1",
-    "fsx": "aleclarson/fsx#1.6.0",
+    "fsx": "aleclarson/fsx#1.9.0",
     "glob-regex": "^0.3.0",
     "recrawl": "^0.0.2",
     "semver": "^5.5.0",
