@@ -1,6 +1,6 @@
 {
   "name": "@aleclarson/release",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "license": "MIT",
   "repository": "aleclarson/release",
   "description": "Publish a new version to Github and NPM",
