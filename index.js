@@ -4,7 +4,7 @@ const ignored = require('./lib/ignored')
 const semver = require('semver')
 const exec = require('./lib/exec')
 const path = require('path')
-const fs = require('fsx')
+const fs = require('saxon/sync')
 
 const BUILD = path.join(__dirname, 'build.sh')
 const PUBLISH = path.join(__dirname, 'publish.sh')
