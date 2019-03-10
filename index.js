@@ -107,6 +107,9 @@ function release(dir, ver, opts = {}) {
       // Remove unpublished files
       let paths = ignored(repo, opts)
       if (paths) {
+        if (opts.dry) {
+          repo.dryLog(red('[remove unpublished files]'))
+        }
         repo.write('.gitignore', paths.join('\n'))
         repo.exec('rm', '-r', '--cached', '.')
         repo.exec('add', '-A')
@@ -117,15 +120,17 @@ function release(dir, ver, opts = {}) {
       // Use the existing upstream, or the default.
       let upstream = repo.upstream() || 'origin/latest'
 
-      let color = opts.dry ? red : arg => arg
-      log('')
-      log((opts.dry ? gray('(skip) ') : '') + color('Pushing to:'), upstream)
+      if (opts.dry) {
+        repo.dryLog(red('[git push]'), upstream)
+      } else {
+        log('Pushing to:', upstream)
+      }
+
       upstream = upstream.split('/')
 
       // Publish the new version.
       if (opts.dry) {
-        log('')
-        log(gray('(skip)'), red('Publishing:'), repo.pack.name + '@' + ver)
+        repo.dryLog(red('[git tag]'), ver)
       } else {
         exec('sh', [PUBLISH, ver, ...upstream], repo.dir)
       }
@@ -162,8 +167,7 @@ function release(dir, ver, opts = {}) {
   // Ensure compiled files exist.
   if (repo.pack) {
     if (opts.dry) {
-      log('')
-      log(gray('(skip)'), red('npm run build -s --if-present'))
+      repo.dryLog(red('npm run build -s --if-present'))
     } else {
       exec('npm', ['run', 'build', '-s', '--if-present'], repo.dir)
     }
