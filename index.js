@@ -101,7 +101,12 @@ function release(dir, ver, opts = {}) {
     try {
       // Run scripts.
       if (repo.pack) {
-        exec('sh', [BUILD], repo.dir)
+        if (opts.dry) {
+          repo.dryLog(red('[prepare build artifacts]'))
+        } else {
+          log('Preparing build artifacts...')
+          exec('sh', [BUILD], repo.dir)
+        }
       }
 
       // Remove unpublished files
