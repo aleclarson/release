@@ -99,8 +99,15 @@ function release(dir, ver, opts = {}) {
     })
 
     try {
-      // Run scripts.
-      if (repo.pack) {
+      let { pack } = repo
+      if (pack) {
+        // Remove the "prepare" script.
+        if (pack.scripts) {
+          delete pack.scripts.prepare
+          repo.write('package.json', pack)
+        }
+
+        // Run the "build" and "prepublish" scripts.
         if (opts.dry) {
           repo.dryLog(red('[prepare build artifacts]'))
         } else {
