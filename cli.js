@@ -29,7 +29,7 @@ let args = slurm({
 })
 
 if (args._ == '--help' || args._ == '-h' || args._ == '') {
-  const help = __dirname + '/help.md'
+  const help = __dirname + '/help.txt'
   console.log(require('fs').readFileSync(help, 'utf8'))
   process.exit()
 }

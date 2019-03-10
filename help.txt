@@ -12,5 +12,7 @@ Options:
   -M --major    set release type to "major"
   -P --pre      set release type to "prerelease"
   -R --rebase   rebase the current version
-  -u --stash    stash changes and untracked files
+  -s --stash    stash changes and untracked files
   -x --exclude  exclude globs from the "latest" branch
+     --dry      safely test a command
+     --quiet    disable logging
