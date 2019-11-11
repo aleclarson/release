@@ -16,7 +16,7 @@
     "lib"
   ],
   "dependencies": {
-    "chalk": "2.4.1",
+    "chalk": "3.0.0",
     "glob-regex": "0.3.2",
     "recrawl": "0.0.2",
     "saxon": "0.1.14",
