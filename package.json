@@ -18,7 +18,7 @@
   "dependencies": {
     "chalk": "2.4.1",
     "glob-regex": "0.3.2",
-    "recrawl": "0.0.2",
+    "recrawl": "2.0.0",
     "saxon": "0.1.14",
     "semver": "5.6.0",
     "slurm": "0.4.0"
